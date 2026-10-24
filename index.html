@@ -6,53 +6,69 @@
 <title>Наши планы</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:14px;background:var(--tg-theme-bg-color,#f6f7fb);color:var(--tg-theme-text-color,#222)}
-h1{font-size:22px;margin:4px 0 14px;text-align:center}
-h2{font-size:16px;margin:18px 0 8px}
-.card{background:var(--tg-theme-secondary-bg-color,#fff);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px #0001}
-input{font:inherit;padding:10px 12px;margin:4px 0;width:100%;box-sizing:border-box;border:1px solid #8883;border-radius:10px;background:transparent;color:inherit}
-button{font:inherit;font-weight:600;padding:11px;margin:6px 0 2px;width:100%;box-sizing:border-box;background:var(--tg-theme-button-color,#5b8def);color:var(--tg-theme-button-text-color,#fff);border:0;border-radius:10px;cursor:pointer}
+:root{--acc:#e8557a;--bg:var(--tg-theme-bg-color,#fff6f8);--card:var(--tg-theme-secondary-bg-color,#fff);--txt:var(--tg-theme-text-color,#2b2b2b);--hint:var(--tg-theme-hint-color,#8c7a80)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{font-family:system-ui,-apple-system,sans-serif;margin:0 0 24px;background:var(--bg);color:var(--txt)}
+#cover{height:150px;background:linear-gradient(135deg,#ff9a9e,#fad0c4 50%,#fecfef) center/cover;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px;position:relative}
+#cover::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent,#0006)}
+#cover h1{position:relative;z-index:1;color:#fff;font-size:24px;margin:0;text-shadow:0 2px 8px #0008}
+.wrap{padding:0 14px}
+.card{background:var(--card);border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 2px 10px #0001}
+h2{font-size:17px;margin:0 0 10px}
+input{font:inherit;padding:10px 12px;margin:4px 0;width:100%;border:1px solid #8883;border-radius:12px;background:transparent;color:inherit}
+button{font:inherit;font-weight:600;padding:11px;margin:6px 0 2px;width:100%;background:var(--acc);color:#fff;border:0;border-radius:12px;cursor:pointer}
 button:active{opacity:.8}
-.code{font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;margin:10px 0;padding:10px;border-radius:10px;background:#8881}
-.item{padding:10px 4px;border-bottom:1px solid #8882;display:flex;gap:8px;align-items:center}
+.tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--bg);padding:10px 14px;z-index:2}
+.tabs button{margin:0;padding:9px 4px;font-size:13px;background:#8882;color:var(--txt)}
+.tabs button.on{background:var(--acc);color:#fff}
+.code{font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;margin:10px 0;padding:10px;border-radius:12px;background:#8881}
+.hint{font-size:14px;color:var(--hint);text-align:center;margin:8px 0}
+.day{font-size:13px;font-weight:700;color:var(--acc);margin:14px 0 4px;text-transform:capitalize}
+.item{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #8882}
 .item:last-child{border-bottom:0}
-.date{font-size:13px;opacity:.7;min-width:84px}
-.done{text-decoration:line-through;opacity:.5}
-.hint{font-size:14px;opacity:.75;text-align:center;margin:6px 0}
+.item img{width:52px;height:52px;border-radius:12px;object-fit:cover;flex:none;background:#8882}
+.grow{flex:1;min-width:0;cursor:default;word-break:break-word}
+.grow.tap{cursor:pointer}
+.sub{font-size:12px;color:var(--hint);margin-bottom:2px}
+.done .grow{text-decoration:line-through;opacity:.5}
+.del{width:auto;margin:0;padding:4px 10px;background:#8883;color:var(--hint);font-size:18px;line-height:1}
+.row{display:flex;gap:8px}
+.row>*{flex:1;min-width:0}
 </style>
 </head>
 <body>
-<h1>💞 Наши планы</h1>
-<div id="setup" class="card">
-  <button id="createBtn" onclick="createPair()">Создать пару</button>
-  <div id="code"></div>
-  <p class="hint">Или введите код, который дал партнёр:</p>
-  <input id="joinCode" inputmode="numeric" placeholder="6 цифр">
-  <button onclick="joinPair()">Войти в пару</button>
+<div id="cover"><h1>💞 Наши планы</h1></div>
+<div class="wrap">
+  <div id="setup" class="card">
+    <button id="createBtn" onclick="createPair()">Создать пару</button>
+    <div id="code"></div>
+    <p class="hint">Или введите код, который дал партнёр:</p>
+    <input id="joinCode" inputmode="numeric" placeholder="6 цифр">
+    <button onclick="joinPair()">Войти в пару</button>
+  </div>
 </div>
 <div id="app" hidden>
-  <div class="card">
-    <h2>📅 Календарь</h2>
-    <input id="evTitle" placeholder="Что / где">
-    <input id="evDate" type="date">
-    <input id="evTime" type="time">
-    <button onclick="addEvent()">Добавить событие</button>
-    <div id="events"></div>
-  </div>
-  <div class="card">
-    <h2>✅ Задачи</h2>
-    <input id="taskTitle" placeholder="Новая задача">
-    <button onclick="addTask()">Добавить задачу</button>
-    <div id="tasks"></div>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="wrap">
+    <div class="card">
+      <h2>🖼️ Фото-обложка</h2>
+      <input id="cover-url" placeholder="Ссылка на фото (https://...)">
+      <button onclick="setCover()">Поставить обложку</button>
+    </div>
+    <div id="sections"></div>
   </div>
 </div>
 <script>
 const API = "https://tg-calendar.igor-tgcal-2026.workers.dev";
+const SECTIONS = { events: "📅 Календарь", tasks: "✅ Задачи", plans: "🗺️ Планы", wishes: "💭 Хотелки" };
 const tg = window.Telegram?.WebApp;
 tg?.ready();
 tg?.expand();
 
 let P = null;
+let tab = "events";
+const $ = id => document.getElementById(id);
 
 async function api(path, body) {
   const r = await fetch(API + path, {
@@ -67,60 +83,114 @@ async function api(path, body) {
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fail = e => alert(e.message);
+const isUrl = u => !u || /^https:\/\//.test(u);
+const fmtDay = d => new Date(d + "T00:00").toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "long" });
+
+async function act(path, body) {
+  try {
+    P = await api(path, body);
+    render();
+    return true;
+  } catch (e) {
+    fail(e);
+    return false;
+  }
+}
 
 async function init() {
-  P = await api("/").catch(fail);
+  try {
+    P = await api("/");
+  } catch (e) {
+    fail(e);
+  }
   render();
+}
+
+function buildApp() {
+  if ($("tabs").children.length) return;
+  $("tabs").innerHTML = Object.entries(SECTIONS).map(([k, v]) => `<button data-tab="${k}" onclick="show('${k}')">${v}</button>`).join("");
+  $("sections").innerHTML = Object.keys(SECTIONS).map(k => `
+    <section class="card" id="sec-${k}" hidden>
+      <h2>${SECTIONS[k]}</h2>
+      <input id="${k}-title" placeholder="${k === "events" ? "Что / где" : k === "tasks" ? "Новая задача" : k === "plans" ? "Название плана" : "Хочу..."}">
+      ${k === "events" || k === "plans" ? `<div class="row"><input id="${k}-date" type="date">${k === "events" ? `<input id="${k}-time" type="time">` : ""}</div>` : ""}
+      ${k !== "tasks" ? `<input id="${k}-img" placeholder="Ссылка на фото (необязательно)">` : ""}
+      <button onclick="add('${k}')">Добавить</button>
+      <div id="list-${k}"></div>
+    </section>`).join("");
+}
+
+function row(kind, t) {
+  const tap = kind !== "events";
+  return `<div class="item ${t.done ? "done" : ""}">
+    ${t.img ? `<img src="${esc(t.img)}" alt="">` : ""}
+    <div class="grow ${tap ? "tap" : ""}" ${tap ? `onclick="toggle('${kind}',${t.id},${!t.done})"` : ""}>
+      ${t.date && kind !== "events" ? `<div class="sub">${esc(t.date)}</div>` : ""}
+      ${tap && t.done ? "✅ " : ""}${esc(t.title)}${kind === "events" && t.time ? `<div class="sub">${esc(t.time.slice(0, 5))}</div>` : ""}
+    </div>
+    <button class="del" onclick="del('${kind}',${t.id})">×</button>
+  </div>`;
+}
+
+function renderList(kind) {
+  const items = [...P[kind]];
+  if (kind === "events") items.sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
+  let html = "", last = null;
+  for (const t of items) {
+    if (kind === "events" && t.date !== last) { last = t.date; html += `<div class="day">${esc(fmtDay(t.date))}</div>`; }
+    html += row(kind, t);
+  }
+  $("list-" + kind).innerHTML = html || `<p class="hint">Пока пусто</p>`;
+}
+
+function show(k) {
+  tab = k;
+  for (const b of $("tabs").children) b.classList.toggle("on", b.dataset.tab === k);
+  for (const s of Object.keys(SECTIONS)) $("sec-" + s).hidden = s !== k;
 }
 
 function render() {
   const waiting = P && P.members.length < 2;
-  document.getElementById("setup").hidden = !!P && !waiting;
-  document.getElementById("createBtn").hidden = !!P;
-  document.getElementById("code").textContent = P?.code ? "Код для партнёра: " + P.code : "";
-  document.getElementById("app").hidden = !P || waiting;
+  $("setup").hidden = !!P && !waiting;
+  $("createBtn").hidden = !!P;
+  $("code").textContent = P?.code ? "Код для партнёра: " + P.code : "";
+  $("app").hidden = !P || waiting;
+  $("cover").style.backgroundImage = P?.cover ? `linear-gradient(#0003,#0007),url("${P.cover.replace(/["'()\\\s]/g, "")}")` : "";
   if (!P || waiting) return;
-  const events = [...P.events].sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
-  document.getElementById("events").innerHTML = events
-    .map(e => `<div class="item"><span class="date">${esc(e.date)} ${e.time ? esc(e.time.slice(0, 5)) : ""}</span>${esc(e.title)}</div>`).join("") || `<p class="hint">Событий пока нет</p>`;
-  document.getElementById("tasks").innerHTML = P.tasks
-    .map(t => `<div class="item ${t.done ? "done" : ""}" onclick="toggle(${t.id}, ${!t.done})">${t.done ? "✅" : "⬜"} ${esc(t.title)}</div>`).join("") || `<p class="hint">Задач пока нет</p>`;
+  buildApp();
+  for (const k of Object.keys(SECTIONS)) renderList(k);
+  show(tab);
 }
 
 async function createPair() {
-  P = await api("/pair/create", {}).catch(fail);
-  render();
+  await act("/pair/create", {});
 }
 
 async function joinPair() {
-  const code = document.getElementById("joinCode").value.trim();
-  if (!code) return;
-  P = await api("/pair/join", { code }).catch(fail) || P;
-  render();
+  const code = $("joinCode").value.trim();
+  if (!code) return alert("Введите код от партнёра");
+  await act("/pair/join", { code });
 }
 
-async function addEvent() {
-  const title = document.getElementById("evTitle").value.trim();
-  const date = document.getElementById("evDate").value;
-  const time = document.getElementById("evTime").value || null;
-  if (!title || !date) return alert("Укажите название и дату");
-  P = await api("/events", { title, date, time }).catch(fail) || P;
-  document.getElementById("evTitle").value = "";
-  render();
+async function add(kind) {
+  const f = s => $(kind + "-" + s)?.value.trim() || "";
+  const title = f("title"), date = f("date"), time = f("time"), img = f("img");
+  if (!title) return alert("Введите название");
+  if (kind === "events" && !date) return alert("Укажите дату");
+  if (!isUrl(img)) return alert("Ссылка на фото должна начинаться с https://");
+  if (await act("/add", { kind, title, date: date || null, time: time || null, img: img || null })) {
+    for (const s of ["title", "date", "time", "img"]) if ($(kind + "-" + s)) $(kind + "-" + s).value = "";
+  }
 }
 
-async function addTask() {
-  const title = document.getElementById("taskTitle").value.trim();
-  if (!title) return;
-  P = await api("/tasks", { title }).catch(fail) || P;
-  document.getElementById("taskTitle").value = "";
-  render();
+async function setCover() {
+  const url = $("cover-url").value.trim();
+  if (!isUrl(url)) return alert("Ссылка на фото должна начинаться с https://");
+  if (await act("/cover", { url: url || null })) $("cover-url").value = "";
 }
 
-async function toggle(id, done) {
-  P = await api("/tasks/toggle", { id, done }).catch(fail) || P;
-  render();
-}
+const toggle = (kind, id, done) => act("/toggle", { kind, id, done });
+const del = (kind, id) => act("/del", { kind, id });
 
 document.addEventListener("visibilitychange", () => { if (!document.hidden) init(); });
 init();
