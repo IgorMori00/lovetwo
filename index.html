@@ -6,33 +6,45 @@
 <title>Наши планы</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-body{font-family:system-ui,sans-serif;margin:0;padding:12px;background:var(--tg-theme-bg-color,#fff);color:var(--tg-theme-text-color,#000)}
-h2{margin:16px 0 6px}
-input,button{font:inherit;padding:8px;margin:4px 0;width:100%;box-sizing:border-box}
-button{background:var(--tg-theme-button-color,#2481cc);color:var(--tg-theme-button-text-color,#fff);border:0;border-radius:8px}
-.item{padding:8px 0;border-bottom:1px solid #8884}
+body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:14px;background:var(--tg-theme-bg-color,#f6f7fb);color:var(--tg-theme-text-color,#222)}
+h1{font-size:22px;margin:4px 0 14px;text-align:center}
+h2{font-size:16px;margin:18px 0 8px}
+.card{background:var(--tg-theme-secondary-bg-color,#fff);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px #0001}
+input{font:inherit;padding:10px 12px;margin:4px 0;width:100%;box-sizing:border-box;border:1px solid #8883;border-radius:10px;background:transparent;color:inherit}
+button{font:inherit;font-weight:600;padding:11px;margin:6px 0 2px;width:100%;box-sizing:border-box;background:var(--tg-theme-button-color,#5b8def);color:var(--tg-theme-button-text-color,#fff);border:0;border-radius:10px;cursor:pointer}
+button:active{opacity:.8}
+.code{font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;margin:10px 0;padding:10px;border-radius:10px;background:#8881}
+.item{padding:10px 4px;border-bottom:1px solid #8882;display:flex;gap:8px;align-items:center}
+.item:last-child{border-bottom:0}
+.date{font-size:13px;opacity:.7;min-width:84px}
 .done{text-decoration:line-through;opacity:.5}
+.hint{font-size:14px;opacity:.75;text-align:center;margin:6px 0}
 </style>
 </head>
 <body>
-<div id="setup" hidden>
+<h1>💞 Наши планы</h1>
+<div id="setup" class="card">
   <button id="createBtn" onclick="createPair()">Создать пару</button>
   <div id="code"></div>
-  <p>Или введите код, который дал партнёр:</p>
+  <p class="hint">Или введите код, который дал партнёр:</p>
   <input id="joinCode" inputmode="numeric" placeholder="6 цифр">
   <button onclick="joinPair()">Войти в пару</button>
 </div>
 <div id="app" hidden>
-  <h2>Календарь</h2>
-  <input id="evTitle" placeholder="Что / где">
-  <input id="evDate" type="date">
-  <input id="evTime" type="time">
-  <button onclick="addEvent()">Добавить событие</button>
-  <div id="events"></div>
-  <h2>Задачи</h2>
-  <input id="taskTitle" placeholder="Новая задача">
-  <button onclick="addTask()">Добавить задачу</button>
-  <div id="tasks"></div>
+  <div class="card">
+    <h2>📅 Календарь</h2>
+    <input id="evTitle" placeholder="Что / где">
+    <input id="evDate" type="date">
+    <input id="evTime" type="time">
+    <button onclick="addEvent()">Добавить событие</button>
+    <div id="events"></div>
+  </div>
+  <div class="card">
+    <h2>✅ Задачи</h2>
+    <input id="taskTitle" placeholder="Новая задача">
+    <button onclick="addTask()">Добавить задачу</button>
+    <div id="tasks"></div>
+  </div>
 </div>
 <script>
 const API = "https://tg-calendar.igor-tgcal-2026.workers.dev";
@@ -70,9 +82,9 @@ function render() {
   if (!P || waiting) return;
   const events = [...P.events].sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
   document.getElementById("events").innerHTML = events
-    .map(e => `<div class="item">${esc(e.date)} ${e.time ? esc(e.time.slice(0, 5)) : ""} — ${esc(e.title)}</div>`).join("");
+    .map(e => `<div class="item"><span class="date">${esc(e.date)} ${e.time ? esc(e.time.slice(0, 5)) : ""}</span>${esc(e.title)}</div>`).join("") || `<p class="hint">Событий пока нет</p>`;
   document.getElementById("tasks").innerHTML = P.tasks
-    .map(t => `<div class="item ${t.done ? "done" : ""}" onclick="toggle(${t.id}, ${!t.done})">${t.done ? "✅" : "⬜"} ${esc(t.title)}</div>`).join("");
+    .map(t => `<div class="item ${t.done ? "done" : ""}" onclick="toggle(${t.id}, ${!t.done})">${t.done ? "✅" : "⬜"} ${esc(t.title)}</div>`).join("") || `<p class="hint">Задач пока нет</p>`;
 }
 
 async function createPair() {
@@ -115,4 +127,3 @@ init();
 </script>
 </body>
 </html>
-
