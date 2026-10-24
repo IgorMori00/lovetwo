@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Наши планы</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;padding:12px;background:var(--tg-theme-bg-color,#fff);color:var(--tg-theme-text-color,#000)}
+h2{margin:16px 0 6px}
+input,button{font:inherit;padding:8px;margin:4px 0;width:100%;box-sizing:border-box}
+button{background:var(--tg-theme-button-color,#2481cc);color:var(--tg-theme-button-text-color,#fff);border:0;border-radius:8px}
+.item{padding:8px 0;border-bottom:1px solid #8884}
+.done{text-decoration:line-through;opacity:.5}
+</style>
+</head>
+<body>
+<div id="setup" hidden>
+  <button id="createBtn" onclick="createPair()">Создать пару</button>
+  <div id="code"></div>
+  <p>Или введите код, который дал партнёр:</p>
+  <input id="joinCode" inputmode="numeric" placeholder="6 цифр">
+  <button onclick="joinPair()">Войти в пару</button>
+</div>
+<div id="app" hidden>
+  <h2>Календарь</h2>
+  <input id="evTitle" placeholder="Что / где">
+  <input id="evDate" type="date">
+  <input id="evTime" type="time">
+  <button onclick="addEvent()">Добавить событие</button>
+  <div id="events"></div>
+  <h2>Задачи</h2>
+  <input id="taskTitle" placeholder="Новая задача">
+  <button onclick="addTask()">Добавить задачу</button>
+  <div id="tasks"></div>
+</div>
+<script>
+const API = "https://tg-calendar.igor-tgcal-2026.workers.dev";
+const tg = window.Telegram?.WebApp;
+tg?.ready();
+tg?.expand();
+
+let P = null;
+
+async function api(path, body) {
+  const r = await fetch(API + path, {
+    method: body ? "POST" : "GET",
+    headers: { "content-type": "application/json", "x-init-data": tg?.initData || "" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || r.status);
+  return d;
+}
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fail = e => alert(e.message);
+
+async function init() {
+  P = await api("/").catch(fail);
+  render();
+}
+
+function render() {
+  const waiting = P && P.members.length < 2;
+  document.getElementById("setup").hidden = !!P && !waiting;
+  document.getElementById("createBtn").hidden = !!P;
+  document.getElementById("code").textContent = P?.code ? "Код для партнёра: " + P.code : "";
+  document.getElementById("app").hidden = !P || waiting;
+  if (!P || waiting) return;
+  const events = [...P.events].sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
+  document.getElementById("events").innerHTML = events
+    .map(e => `<div class="item">${esc(e.date)} ${e.time ? esc(e.time.slice(0, 5)) : ""} — ${esc(e.title)}</div>`).join("");
+  document.getElementById("tasks").innerHTML = P.tasks
+    .map(t => `<div class="item ${t.done ? "done" : ""}" onclick="toggle(${t.id}, ${!t.done})">${t.done ? "✅" : "⬜"} ${esc(t.title)}</div>`).join("");
+}
+
+async function createPair() {
+  P = await api("/pair/create", {}).catch(fail);
+  render();
+}
+
+async function joinPair() {
+  const code = document.getElementById("joinCode").value.trim();
+  if (!code) return;
+  P = await api("/pair/join", { code }).catch(fail) || P;
+  render();
+}
+
+async function addEvent() {
+  const title = document.getElementById("evTitle").value.trim();
+  const date = document.getElementById("evDate").value;
+  const time = document.getElementById("evTime").value || null;
+  if (!title || !date) return alert("Укажите название и дату");
+  P = await api("/events", { title, date, time }).catch(fail) || P;
+  document.getElementById("evTitle").value = "";
+  render();
+}
+
+async function addTask() {
+  const title = document.getElementById("taskTitle").value.trim();
+  if (!title) return;
+  P = await api("/tasks", { title }).catch(fail) || P;
+  document.getElementById("taskTitle").value = "";
+  render();
+}
+
+async function toggle(id, done) {
+  P = await api("/tasks/toggle", { id, done }).catch(fail) || P;
+  render();
+}
+
+document.addEventListener("visibilitychange", () => { if (!document.hidden) init(); });
+init();
+</script>
+</body>
+</html>
