@@ -2,66 +2,96 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Наши планы</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root{--acc:#e8557a;--bg:var(--tg-theme-bg-color,#fff6f8);--card:var(--tg-theme-secondary-bg-color,#fff);--txt:var(--tg-theme-text-color,#2b2b2b);--hint:var(--tg-theme-hint-color,#8c7a80)}
+:root{--acc:#e8557a;--acc2:#a77bf3;--bg:var(--tg-theme-bg-color,#fdf3f6);--card:var(--tg-theme-secondary-bg-color,#fff);--txt:var(--tg-theme-text-color,#2b2233);--hint:var(--tg-theme-hint-color,#8d7f94);--line:#8882}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{font-family:system-ui,-apple-system,sans-serif;margin:0 0 24px;background:var(--bg);color:var(--txt)}
-#cover{height:150px;background:linear-gradient(135deg,#ff9a9e,#fad0c4 50%,#fecfef) center/cover;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px;position:relative}
-#cover::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent,#0006)}
-#cover h1{position:relative;z-index:1;color:#fff;font-size:24px;margin:0;text-shadow:0 2px 8px #0008}
-.wrap{padding:0 14px}
-.card{background:var(--card);border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 2px 10px #0001}
-h2{font-size:17px;margin:0 0 10px}
-input{font:inherit;padding:10px 12px;margin:4px 0;width:100%;border:1px solid #8883;border-radius:12px;background:transparent;color:inherit}
-button{font:inherit;font-weight:600;padding:11px;margin:6px 0 2px;width:100%;background:var(--acc);color:#fff;border:0;border-radius:12px;cursor:pointer}
-button:active{opacity:.8}
-.tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--bg);padding:10px 14px;z-index:2}
-.tabs button{margin:0;padding:9px 4px;font-size:13px;background:#8882;color:var(--txt)}
-.tabs button.on{background:var(--acc);color:#fff}
-.code{font-size:28px;font-weight:700;letter-spacing:4px;text-align:center;margin:10px 0;padding:10px;border-radius:12px;background:#8881}
-.hint{font-size:14px;color:var(--hint);text-align:center;margin:8px 0}
-.day{font-size:13px;font-weight:700;color:var(--acc);margin:14px 0 4px;text-transform:capitalize}
-.item{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #8882}
-.item:last-child{border-bottom:0}
-.item img{width:52px;height:52px;border-radius:12px;object-fit:cover;flex:none;background:#8882}
-.grow{flex:1;min-width:0;cursor:default;word-break:break-word}
-.grow.tap{cursor:pointer}
-.sub{font-size:12px;color:var(--hint);margin-bottom:2px}
-.done .grow{text-decoration:line-through;opacity:.5}
-.del{width:auto;margin:0;padding:4px 10px;background:#8883;color:var(--hint);font-size:18px;line-height:1}
+body{margin:0;font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+#hero{position:relative;height:180px;background:linear-gradient(135deg,#ff9a9e,#fad0c4 45%,#c3a6ff) center/cover;display:flex;flex-direction:column;justify-content:flex-end;padding:16px 18px;color:#fff;overflow:hidden}
+#hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#0000 25%,#0009)}
+#hero>*{position:relative;z-index:1}
+#hero h1{margin:0;font-size:26px;text-shadow:0 2px 10px #0006}
+#status{font-size:14px;opacity:.95;margin-top:2px;text-shadow:0 1px 4px #0006}
+.wrap{padding:12px 14px 40px;max-width:520px;margin:0 auto}
+.card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 6px 24px #b0607a14}
+.card h2{font-size:17px;margin:0 0 10px}
+input{font:inherit;width:100%;padding:12px 14px;margin:5px 0;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:inherit;outline:none}
+input:focus{border-color:var(--acc)}
+button{font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:14px;padding:12px;width:100%;margin-top:6px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;transition:transform .1s}
+button:active{transform:scale(.98)}
+button.ghost{background:transparent;color:var(--hint);font-weight:500;border:1px solid var(--line)}
 .row{display:flex;gap:8px}
 .row>*{flex:1;min-width:0}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 14px 10px;scrollbar-width:none;position:sticky;top:0;background:var(--bg);z-index:5}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:1 0 auto;margin:0;padding:9px 12px;font-size:14px;background:var(--card);color:var(--hint);box-shadow:0 2px 8px #0001;white-space:nowrap}
+.tabs button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.code{font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;padding:14px;margin:12px 0;border-radius:16px;background:#e8557a14;color:var(--acc)}
+.hint{font-size:14px;color:var(--hint);margin:6px 0 10px;line-height:1.4}
+.item{display:flex;gap:12px;align-items:center;padding:10px;margin:8px 0;border-radius:16px;background:var(--bg)}
+.item img{width:56px;height:56px;border-radius:14px;object-fit:cover;flex:none;background:var(--line)}
+.grow{flex:1;min-width:0;word-break:break-word}
+.ttl{font-weight:600;font-size:15px}
+.sub{font-size:12px;color:var(--hint);margin-top:3px}
+.done .ttl{text-decoration:line-through;opacity:.5}
+.badge{width:52px;height:52px;flex:none;border-radius:14px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.badge b{font-size:19px}
+.badge span{font-size:11px;text-transform:uppercase;opacity:.9}
+.chk{width:30px;height:30px;margin:0;padding:0;flex:none;border-radius:50%;background:transparent;border:2px solid var(--acc2);color:#fff;font-size:15px;line-height:1}
+.chk.on{background:var(--acc2)}
+.del{width:auto;flex:none;margin:0;padding:0 6px;background:transparent;color:var(--hint);font-size:22px;line-height:1}
+.empty{text-align:center;color:var(--hint);padding:18px 0;font-size:14px}
+details summary{font-weight:600;cursor:pointer;list-style:none}
+details[open] summary{margin-bottom:8px}
 </style>
 </head>
 <body>
-<div id="cover"><h1>💞 Наши планы</h1></div>
+<header id="hero">
+  <h1>💞 Наши планы</h1>
+  <div id="status">Загрузка…</div>
+</header>
 <div class="wrap">
-  <div id="setup" class="card">
-    <button id="createBtn" onclick="createPair()">Создать пару</button>
-    <div id="code"></div>
-    <p class="hint">Или введите код, который дал партнёр:</p>
-    <input id="joinCode" inputmode="numeric" placeholder="6 цифр">
-    <button onclick="joinPair()">Войти в пару</button>
+  <div id="createCard" class="card" hidden>
+    <h2>💞 Создать пару</h2>
+    <p class="hint">Создайте пару и отправьте партнёру код.</p>
+    <button onclick="createPair()">Создать пару</button>
   </div>
-</div>
-<div id="app" hidden>
-  <nav class="tabs" id="tabs"></nav>
-  <div class="wrap">
-    <div class="card">
-      <h2>🖼️ Фото-обложка</h2>
-      <input id="cover-url" placeholder="Ссылка на фото (https://...)">
-      <button onclick="setCover()">Поставить обложку</button>
-    </div>
+  <div id="waiting" class="card" hidden>
+    <h2>💌 Ждём партнёра</h2>
+    <p class="hint">Партнёр вводит этот код в разделе «Войти по коду»:</p>
+    <div id="code" class="code"></div>
+    <button class="ghost" onclick="copyCode()">Скопировать код</button>
+    <button class="ghost" onclick="leave()">Отменить пару</button>
+  </div>
+  <div id="joinCard" class="card" hidden>
+    <h2>🔑 Войти по коду</h2>
+    <p class="hint">Введите код партнёра. Если вы создавали пару одни, она заменится парой партнёра.</p>
+    <input id="joinCode" inputmode="numeric" maxlength="6" placeholder="6 цифр">
+    <button onclick="joinPair()">Войти</button>
+  </div>
+  <div id="loading" class="hint">Загрузка…</div>
+  <div id="app" hidden>
+    <nav class="tabs" id="tabs"></nav>
     <div id="sections"></div>
+    <details class="card">
+      <summary>⚙️ Обложка и пара</summary>
+      <input id="cover-url" placeholder="Ссылка на фото обложки (https://...)">
+      <button onclick="setCover()">Сохранить обложку</button>
+      <button class="ghost" onclick="leave()">Выйти из пары</button>
+    </details>
   </div>
 </div>
 <script>
 const API = "https://tg-calendar.igor-tgcal-2026.workers.dev";
-const SECTIONS = { events: "📅 Календарь", tasks: "✅ Задачи", plans: "🗺️ Планы", wishes: "💭 Хотелки" };
+const SECTIONS = {
+  events: { icon: "📅", name: "Календарь", ph: "Что / где: ужин, кино..." },
+  tasks: { icon: "✅", name: "Задачи", ph: "Что сделать" },
+  plans: { icon: "🗺️", name: "Планы", ph: "Название плана" },
+  wishes: { icon: "💭", name: "Хотелки", ph: "Чего хочется..." },
+};
 const tg = window.Telegram?.WebApp;
 tg?.ready();
 tg?.expand();
@@ -77,14 +107,17 @@ async function api(path, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const d = await r.json();
-  if (!r.ok) throw new Error(d.error || r.status);
+  if (!r.ok) throw new Error(d.error || "Ошибка " + r.status);
   return d;
 }
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const fail = e => alert(e.message);
+const say = m => (tg?.showAlert ? tg.showAlert(m) : alert(m));
+const ask = m => new Promise(res => (tg?.showConfirm ? tg.showConfirm(m, res) : res(confirm(m))));
 const isUrl = u => !u || /^https:\/\//.test(u);
-const fmtDay = d => new Date(d + "T00:00").toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "long" });
+const today = () => new Date().toLocaleDateString("en-CA");
+const dateOf = d => new Date(d + "T00:00");
+const fmtShort = d => dateOf(d).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
 
 async function act(path, body) {
   try {
@@ -92,7 +125,7 @@ async function act(path, body) {
     render();
     return true;
   } catch (e) {
-    fail(e);
+    say(e.message);
     return false;
   }
 }
@@ -101,46 +134,41 @@ async function init() {
   try {
     P = await api("/");
   } catch (e) {
-    fail(e);
+    say(e.message);
   }
   render();
 }
 
 function buildApp() {
   if ($("tabs").children.length) return;
-  $("tabs").innerHTML = Object.entries(SECTIONS).map(([k, v]) => `<button data-tab="${k}" onclick="show('${k}')">${v}</button>`).join("");
-  $("sections").innerHTML = Object.keys(SECTIONS).map(k => `
+  $("tabs").innerHTML = Object.entries(SECTIONS).map(([k, s]) => `<button data-tab="${k}" onclick="show('${k}')">${s.icon} ${s.name}</button>`).join("");
+  $("sections").innerHTML = Object.entries(SECTIONS).map(([k, s]) => `
     <section class="card" id="sec-${k}" hidden>
-      <h2>${SECTIONS[k]}</h2>
-      <input id="${k}-title" placeholder="${k === "events" ? "Что / где" : k === "tasks" ? "Новая задача" : k === "plans" ? "Название плана" : "Хочу..."}">
+      <input id="${k}-title" placeholder="${s.ph}">
       ${k === "events" || k === "plans" ? `<div class="row"><input id="${k}-date" type="date">${k === "events" ? `<input id="${k}-time" type="time">` : ""}</div>` : ""}
-      ${k !== "tasks" ? `<input id="${k}-img" placeholder="Ссылка на фото (необязательно)">` : ""}
+      ${k !== "tasks" ? `<input id="${k}-img" placeholder="Фото: ссылка https://... (необязательно)">` : ""}
       <button onclick="add('${k}')">Добавить</button>
       <div id="list-${k}"></div>
     </section>`).join("");
 }
 
-function row(kind, t) {
-  const tap = kind !== "events";
+function rowHTML(kind, t) {
+  const lead = kind === "events"
+    ? `<div class="badge"><b>${dateOf(t.date).getDate()}</b><span>${esc(dateOf(t.date).toLocaleDateString("ru-RU", { month: "short" }))}</span></div>`
+    : `<button class="chk ${t.done ? "on" : ""}" onclick="toggle('${kind}',${t.id},${!t.done})" aria-label="Отметить">${t.done ? "✓" : ""}</button>`;
+  const sub = kind === "events" ? (t.time ? "🕒 " + t.time.slice(0, 5) : "") : (t.date ? "📅 " + fmtShort(t.date) : "");
   return `<div class="item ${t.done ? "done" : ""}">
-    ${t.img ? `<img src="${esc(t.img)}" alt="">` : ""}
-    <div class="grow ${tap ? "tap" : ""}" ${tap ? `onclick="toggle('${kind}',${t.id},${!t.done})"` : ""}>
-      ${t.date && kind !== "events" ? `<div class="sub">${esc(t.date)}</div>` : ""}
-      ${tap && t.done ? "✅ " : ""}${esc(t.title)}${kind === "events" && t.time ? `<div class="sub">${esc(t.time.slice(0, 5))}</div>` : ""}
-    </div>
-    <button class="del" onclick="del('${kind}',${t.id})">×</button>
+    ${lead}
+    ${t.img ? `<img src="${esc(t.img)}" alt="" loading="lazy">` : ""}
+    <div class="grow"><div class="ttl">${esc(t.title)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ""}</div>
+    <button class="del" onclick="del('${kind}',${t.id})" aria-label="Удалить">×</button>
   </div>`;
 }
 
 function renderList(kind) {
   const items = [...P[kind]];
   if (kind === "events") items.sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
-  let html = "", last = null;
-  for (const t of items) {
-    if (kind === "events" && t.date !== last) { last = t.date; html += `<div class="day">${esc(fmtDay(t.date))}</div>`; }
-    html += row(kind, t);
-  }
-  $("list-" + kind).innerHTML = html || `<p class="hint">Пока пусто</p>`;
+  $("list-" + kind).innerHTML = items.map(t => rowHTML(kind, t)).join("") || `<div class="empty">Пока пусто ✨</div>`;
 }
 
 function show(k) {
@@ -150,16 +178,21 @@ function show(k) {
 }
 
 function render() {
-  const waiting = P && P.members.length < 2;
-  $("setup").hidden = !!P && !waiting;
-  $("createBtn").hidden = !!P;
-  $("code").textContent = P?.code ? "Код для партнёра: " + P.code : "";
-  $("app").hidden = !P || waiting;
-  $("cover").style.backgroundImage = P?.cover ? `linear-gradient(#0003,#0007),url("${P.cover.replace(/["'()\\\s]/g, "")}")` : "";
-  if (!P || waiting) return;
-  buildApp();
-  for (const k of Object.keys(SECTIONS)) renderList(k);
-  show(tab);
+  const solo = P && P.members.length < 2;
+  const paired = !!P && !solo;
+  $("status").textContent = !P ? "Создайте пару или войдите по коду" : solo ? "Ждём партнёра" : "Вы вдвоём 💞";
+  $("hero").style.backgroundImage = P?.cover ? `url("${P.cover.replace(/["'()\\\s]/g, "")}")` : "";
+  $("createCard").hidden = !!P;
+  $("waiting").hidden = !solo;
+  $("joinCard").hidden = paired;
+  $("app").hidden = !paired;
+  $("loading").hidden = true;
+  if (solo) $("code").textContent = P.code;
+  if (paired) {
+    buildApp();
+    for (const k of Object.keys(SECTIONS)) renderList(k);
+    show(tab);
+  }
 }
 
 async function createPair() {
@@ -168,16 +201,24 @@ async function createPair() {
 
 async function joinPair() {
   const code = $("joinCode").value.trim();
-  if (!code) return alert("Введите код от партнёра");
-  await act("/pair/join", { code });
+  if (!/^\d{6}$/.test(code)) return say("Код — 6 цифр");
+  if (await act("/pair/join", { code })) $("joinCode").value = "";
+}
+
+function copyCode() {
+  navigator.clipboard?.writeText(P.code).then(() => say("Код скопирован"), () => say("Код: " + P.code));
+}
+
+async function leave() {
+  if (await ask("Выйти из пары? Общие данные останутся у партнёра.")) await act("/pair/leave", {});
 }
 
 async function add(kind) {
   const f = s => $(kind + "-" + s)?.value.trim() || "";
   const title = f("title"), date = f("date"), time = f("time"), img = f("img");
-  if (!title) return alert("Введите название");
-  if (kind === "events" && !date) return alert("Укажите дату");
-  if (!isUrl(img)) return alert("Ссылка на фото должна начинаться с https://");
+  if (!title) return say("Введите название");
+  if (kind === "events" && !date) return say("Укажите дату");
+  if (!isUrl(img)) return say("Ссылка на фото должна начинаться с https://");
   if (await act("/add", { kind, title, date: date || null, time: time || null, img: img || null })) {
     for (const s of ["title", "date", "time", "img"]) if ($(kind + "-" + s)) $(kind + "-" + s).value = "";
   }
@@ -185,12 +226,14 @@ async function add(kind) {
 
 async function setCover() {
   const url = $("cover-url").value.trim();
-  if (!isUrl(url)) return alert("Ссылка на фото должна начинаться с https://");
+  if (!isUrl(url)) return say("Ссылка на фото должна начинаться с https://");
   if (await act("/cover", { url: url || null })) $("cover-url").value = "";
 }
 
 const toggle = (kind, id, done) => act("/toggle", { kind, id, done });
-const del = (kind, id) => act("/del", { kind, id });
+async function del(kind, id) {
+  if (await ask("Удалить?")) await act("/del", { kind, id });
+}
 
 document.addEventListener("visibilitychange", () => { if (!document.hidden) init(); });
 init();
