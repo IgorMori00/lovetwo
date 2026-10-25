@@ -75,6 +75,10 @@ input:focus{border-color:var(--acc)}
 #nav button i{font-style:normal;font-size:20px;line-height:1.1}
 #nav button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 6px 16px -6px var(--acc)}
 #toast{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#2d2440;color:#fff;padding:10px 16px;border-radius:14px;font-size:14px;z-index:20;max-width:90%;text-align:center;box-shadow:0 10px 26px -10px #000a}
+.stars{display:flex;gap:2px;margin-top:4px}
+.star{width:auto;margin:0;padding:0 2px;background:none;box-shadow:none;color:#d6cbe0;font-size:18px;line-height:1}
+.star.on{color:#f5b301}
+.bal{font-size:20px;font-weight:800;margin:4px 0}
 @media (min-width:700px){#hero{border-radius:0 0 32px 32px}}
 </style>
 </head>
@@ -116,6 +120,7 @@ input:focus{border-color:var(--acc)}
     </section>
 
     <section class="pane" id="tab-events">
+      <div id="onDay" class="card" hidden></div>
       <div class="card">
         <div class="calhead"><button class="navbtn" onclick="moveMonth(-1)" aria-label="Назад">‹</button><b id="monthTitle"></b><button class="navbtn" onclick="moveMonth(1)" aria-label="Вперёд">›</button></div>
         <div class="wd"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
@@ -147,6 +152,7 @@ input:focus{border-color:var(--acc)}
     </section>
 
     <section class="pane" id="tab-shop" hidden>
+      <div id="balance" class="card" hidden></div>
       <div class="card">
         <h2>🛒 Покупки</h2>
         <div id="progress-shop"></div>
@@ -155,6 +161,7 @@ input:focus{border-color:var(--acc)}
       <div class="card">
         <h3>Что купить</h3>
         <input id="shop-title" placeholder="Например: молоко">
+        <input id="shop-amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Сумма, ₽ (необязательно)">
         <input id="shop-img" placeholder="Фото (https://...)">
         <button onclick="add('shop')">Добавить в список</button>
       </div>
@@ -271,6 +278,8 @@ function render() {
   renderNext();
   renderCal();
   renderDay();
+  renderOnDay();
+  renderBalance();
   for (const k of TABS.slice(1)) renderList(k);
   $("sinceIn").value = P.since || "";
   show(tab);
@@ -326,7 +335,7 @@ function renderDay() {
   $("dayTitle").textContent = dateOf(sel).toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
   $("dayList").innerHTML = list.map(e => `<div class="ev">
       <div class="evtime">${e.time ? esc(e.time.slice(0, 5)) : "весь день"}</div>
-      <div class="grow"><div class="ttl">${esc(e.title)}</div></div>
+      <div class="grow"><div class="ttl">${esc(e.title)}</div>${e.date < today() ? stars(e) : ""}</div>
       ${photo(e)}
       <button class="del" onclick="del('events',${e.id})" aria-label="Удалить">×</button>
     </div>`).join("") || `<div class="empty">На этот день ничего нет ✨</div>`;
@@ -344,11 +353,42 @@ function renderList(kind) {
       : `<button class="chk ${t.done ? "on" : ""}" onclick="toggle('${kind}',${t.id},${!t.done})" aria-label="Отметить">${t.done ? "✓" : ""}</button>`;
     return `<div class="row-i ${t.done ? "done" : ""}">
       ${btn}
-      <div class="grow"><div class="ttl">${esc(t.title)}</div>${t.date ? `<div class="sub">📅 ${esc(fmtShort(t.date))}</div>` : ""}</div>
+      <div class="grow"><div class="ttl">${esc(t.title)}</div>${t.date ? `<div class="sub">📅 ${esc(fmtShort(t.date))}</div>` : ""}${t.amount ? `<div class="sub">💰 ${money(t.amount)}${t.settled ? " · рассчитано" : ""}</div>` : ""}</div>
       ${photo(t)}
       <button class="del" onclick="del('${kind}',${t.id})" aria-label="Удалить">×</button>
     </div>`;
   }).join("") || `<div class="empty">${EMPTY[kind]}</div>`;
+}
+
+const money = n => n.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " ₽";
+const stars = e => `<div class="stars">${[1, 2, 3, 4, 5].map(n => `<button class="star ${n <= (e.rating || 0) ? "on" : ""}" onclick="rate(${e.id},${n})" aria-label="Оценка ${n}">★</button>`).join("")}</div>`;
+const rate = (id, n) => act("/rate", { id, rating: n });
+
+function renderOnDay() {
+  const t = today();
+  const hits = P.items.events.filter(e => e.date < t && e.date.slice(5) === t.slice(5));
+  $("onDay").hidden = !hits.length;
+  $("onDay").innerHTML = `<h3>🕰️ В этот день</h3>` + hits.map(e => `<div class="ev">
+      <div class="evtime">${esc(e.date.slice(0, 4))}</div>
+      <div class="grow"><div class="ttl">${esc(e.title)}</div>${e.rating ? `<div class="sub">${"★".repeat(e.rating)}</div>` : ""}</div>
+      ${photo(e)}
+    </div>`).join("");
+}
+
+function renderBalance() {
+  const me = JSON.parse(new URLSearchParams(tg?.initData || "").get("user") || "null")?.id;
+  const open = P.items.shop.filter(x => x.amount && !x.settled);
+  $("balance").hidden = !open.length;
+  if (!open.length) return;
+  const total = open.reduce((s, x) => s + x.amount, 0);
+  const paid = open.filter(x => x.payer === me).reduce((s, x) => s + x.amount, 0);
+  const diff = Math.round((paid - total / 2) * 100) / 100;
+  const text = diff === 0 ? "Всё поровну ✓" : diff > 0 ? "Партнёр должен тебе " + money(diff) : "Ты должен партнёру " + money(-diff);
+  $("balance").innerHTML = `<h3>💸 Расчёт</h3><div class="bal">${text}</div><div class="sub">Всего трат: ${money(total)} · каждый платит половину</div><button onclick="settle()">Рассчитались</button>`;
+}
+
+async function settle() {
+  if (await confirmBox("Отметить все траты как рассчитанные?")) await act("/settle", {});
 }
 
 function toggleSettings() { $("settings").hidden = !$("settings").hidden; }
@@ -389,8 +429,9 @@ async function add(kind) {
   if (!title) return toast("Введите название");
   if (kind === "events" && !date) return toast("Выберите день");
   if (img && !/^https:\/\//.test(img)) return toast("Ссылка на фото должна начинаться с https://");
-  if (await act("/add", { kind, title, date, time, img: img || null })) {
-    for (const s of ["title", "date", "time", "img"]) if ($(pre + "-" + s)) $(pre + "-" + s).value = "";
+  const amount = kind === "shop" ? Number(v("amount")) || null : null;
+  if (await act("/add", { kind, title, date, time, img: img || null, amount })) {
+    for (const s of ["title", "date", "time", "img", "amount"]) if ($(pre + "-" + s)) $(pre + "-" + s).value = "";
   }
 }
 
