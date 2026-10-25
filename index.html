@@ -103,6 +103,13 @@ input:focus{border-color:var(--acc)}
 .upl{display:block;text-align:center;padding:12px;margin:8px 0 2px;border-radius:14px;border:1.5px dashed var(--acc);color:var(--acc);font-weight:700;cursor:pointer;background:#fff}
 .hcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;color:var(--ink);border:0;border-radius:18px;padding:14px;margin:0 0 10px;box-shadow:0 2px 10px #0001;cursor:pointer}
 .hcard i{font-size:26px;font-style:normal;flex:none}
+.bsum{display:flex;gap:8px;margin:4px 0 10px}
+.bsum>div{flex:1;background:#8881;border-radius:14px;padding:8px;text-align:center}
+.bsum small{display:block;color:var(--mut);font-size:12px}
+.bsum b{font-size:15px}
+.in{color:#2a9d6f}
+.out{color:#d64c6f}
+select{font:inherit;width:100%;padding:10px 12px;margin:4px 0;border:1px solid #8883;border-radius:12px;background:transparent;color:inherit}
 .hcard span{flex:1;min-width:0;display:flex;flex-direction:column}
 .hcard b{font-size:16px}
 .hcard small{color:var(--mut);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -155,11 +162,18 @@ input:focus{border-color:var(--acc)}
   <div id="app" hidden>
     <section id="settings" class="card" hidden>
       <h3>⚙️ Настройки</h3>
+      <div class="section-h">Профиль</div>
+      <div class="row"><input id="nameIn" maxlength="40" placeholder="Ваше имя"><button class="sm" onclick="saveName()">Сохранить</button></div>
       <div class="section-h">Фон</div>
       <div id="bgs" class="bgs"></div>
       <div class="section-h">Пара</div>
       <label class="lbl" for="sinceIn">Дата начала отношений (для счётчика)</label>
       <div class="row"><input id="sinceIn" type="date"><button class="sm" onclick="saveSince()">Сохранить</button></div>
+      <div class="section-h">Бюджет</div>
+      <label class="lbl" for="limitIn">Месячный лимит, ₽ (необязательно)</label>
+      <div class="row"><input id="limitIn" type="number" inputmode="decimal" min="0" placeholder="Например, 80000"><button class="sm" onclick="saveLimit()">Сохранить</button></div>
+      <div class="section-h">Уведомления</div>
+      <p class="hint">Выключены. Приложение только показывает данные, без push-уведомлений.</p>
       <div class="section-h">Дни рождения</div>
       <div class="bday"><span>Я</span><input id="bdayMe" type="date" onchange="saveBirthday(this.value)"></div>
       <div class="bday"><span>Партнёр</span><span id="bdayPartner" class="sub"></span></div>
@@ -239,6 +253,25 @@ input:focus{border-color:var(--acc)}
         <button onclick="add('wishes')">Добавить хотелку</button>
       </div>
     </section>
+
+    <section class="pane" id="tab-budget" hidden>
+      <div class="card">
+        <h2>💰 Общий бюджет</h2>
+        <div id="bSum"></div>
+        <div id="list-budget"></div>
+      </div>
+      <div class="card">
+        <h3>Новая запись</h3>
+        <div class="chips">
+          <button class="chip on" data-bsize="out" onclick="pickBSize('out')">➖ Расход</button>
+          <button class="chip" data-bsize="in" onclick="pickBSize('in')">➕ Доход (ЗП)</button>
+        </div>
+        <input id="budget-title" placeholder="Например: зарплата, продукты">
+        <div class="row"><input id="budget-amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Сумма, ₽"><input id="budget-date" type="date"></div>
+        <select id="budget-cat"></select>
+        <button onclick="add('budget')">Записать</button>
+      </div>
+    </section>
   </div>
 </main>
 <nav id="nav" hidden>
@@ -246,6 +279,7 @@ input:focus{border-color:var(--acc)}
   <button data-tab="plans" onclick="show('plans')"><i>🗺️</i>Планы</button>
   <button data-tab="home" onclick="show('home')"><i>🏠</i>Главная</button>
   <button data-tab="shop" onclick="show('shop')"><i>🛒</i>Покупки</button>
+  <button data-tab="budget" onclick="show('budget')"><i>💰</i>Бюджет</button>
   <button data-tab="wishes" onclick="show('wishes')"><i>💭</i>Хотелки</button>
 </nav>
 <div id="sheet" hidden>
@@ -259,7 +293,7 @@ input:focus{border-color:var(--acc)}
 <div id="toast" hidden></div>
 <script>
 const API = "https://tg-calendar.igor-tgcal-2026.workers.dev";
-const TABS = ["events", "plans", "home", "shop", "wishes"];
+const TABS = ["events", "plans", "home", "shop", "budget", "wishes"];
 const LABEL = { plans: "Сделано", shop: "Куплено", wishes: "Исполнено" };
 const CACHE = "np-state";
 const BGS = {
@@ -366,6 +400,7 @@ function render() {
   renderOnDay();
   renderBalance();
   for (const k of ["plans", "shop", "wishes"]) renderList(k);
+  renderBudget();
   renderHome();
   renderSettings();
   if ($("settings").hidden) show(tab);
@@ -376,6 +411,8 @@ const meId = () => String(JSON.parse(new URLSearchParams(tg?.initData || "").get
 function renderSettings() {
   $("sinceIn").value = P.since || "";
   const me = meId();
+  $("nameIn").value = P.names?.[me] || "";
+  $("limitIn").value = P.budgetLimit || "";
   const partner = P.uids.find(u => String(u) !== me);
   $("bdayMe").value = P.birthdays[me] || "";
   $("bdayPartner").textContent = partner && P.birthdays[partner] ? fmtShort(P.birthdays[partner]) : "не указан";
@@ -412,13 +449,47 @@ function renderHome() {
     card("events", "📅", "Календарь", ev.length ? "Сегодня: " + ev.map(x => esc(x.title)).join(", ") : "Сегодня ничего не запланировано") +
     card("plans", "🗺️", "Планы", plans.length ? `Сделано ${plans.filter(x => x.done).length} из ${plans.length}${openPlans ? " · " + openPlans : ""}` : "Планов пока нет") +
     card("shop", "🛒", "Покупки", shop.length ? `Осталось купить: ${shop.length}` : "Список пуст") +
-    card("wishes", "💭", "Хотелки", wish.length ? `Исполнено ${wish.filter(x => x.done).length} из ${wish.length}` : "Пока без хотелок");
+    card("wishes", "💭", "Хотелки", wish.length ? `Исполнено ${wish.filter(x => x.done).length} из ${wish.length}` : "Пока без хотелок") +
+    card("budget", "💰", "Бюджет", budgetMonth().balanceText);
+}
+
+let bSize = "out";
+function pickBSize(s) {
+  bSize = s;
+  for (const b of document.querySelectorAll("[data-bsize]")) b.classList.toggle("on", b.dataset.bsize === s);
+}
+function budgetMonth() {
+  const m = today().slice(0, 7);
+  const items = P.items.budget.filter(x => x.date && x.date.startsWith(m));
+  const sum = s => items.filter(x => x.size === s).reduce((a, x) => a + (x.amount || 0), 0);
+  const inc = sum("in"), out = sum("out"), left = inc - out;
+  const balanceText = items.length ? `Осталось: ${money(left)} · расходы ${money(out)}` : "Пока записей за этот месяц";
+  return { items, inc, out, left, balanceText };
+}
+function renderBudget() {
+  const b = budgetMonth();
+  const lim = P.budgetLimit;
+  const pct = lim ? Math.min(100, Math.round((b.out / lim) * 100)) : 0;
+  $("bSum").innerHTML = `
+    <div class="bsum"><div><small>Доход</small><b class="in">+${money(b.inc)}</b></div><div><small>Расход</small><b class="out">−${money(b.out)}</b></div><div><small>Осталось</small><b>${money(b.left)}</b></div></div>
+    ${lim ? `<div class="sub">Лимит месяца ${money(lim)} · потрачено ${pct}%</div><div class="bar"><i style="width:${pct}%"></i></div>` : `<div class="sub">Лимит не задан: задайте его в ⚙️ настройках</div>`}`;
+  const cats = P.categories || [];
+  const sel = $("budget-cat");
+  if (sel && !sel.options.length) sel.innerHTML = cats.map(c => `<option>${esc(c)}</option>`).join("");
+  if ($("budget-date") && !$("budget-date").value) $("budget-date").value = today();
+  const items = [...P.items.budget].sort((x, y) => (y.date || "").localeCompare(x.date || "") || y.id - x.id);
+  let html = "", last = null;
+  for (const x of items) {
+    if (x.date !== last) { last = x.date; html += `<div class="day">${esc(fmtShort(x.date || ""))}</div>`; }
+    html += `<div class="item"><div class="grow"><b>${esc(x.title)}</b><div class="sub">${esc(x.place || "")} · ${esc(P.names?.[x.payer] || "—")}</div></div><b class="${x.size === "in" ? "in" : "out"}">${x.size === "in" ? "+" : "−"}${money(x.amount)}</b><button class="del" onclick="del('budget',${x.id})">×</button></div>`;
+  }
+  $("list-budget").innerHTML = html || `<p class="hint">Записей пока нет 💰</p>`;
 }
 
 let sheetTab = "events";
 function preview(kind) {
   sheetTab = kind;
-  const names = { events: "📅 Календарь", plans: "🗺️ Планы", shop: "🛒 Покупки", wishes: "💭 Хотелки" };
+  const names = { events: "📅 Календарь", plans: "🗺️ Планы", shop: "🛒 Покупки", budget: "💰 Бюджет", wishes: "💭 Хотелки" };
   let items = [...P.items[kind]];
   if (kind === "events") items = items.filter(x => x.date >= today()).sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
   const line = x => {
@@ -598,6 +669,16 @@ async function saveSince() {
   if (await act("/since", { date: d })) toast("Счётчик обновлён ❤️");
 }
 
+async function saveName() {
+  const name = $("nameIn").value.trim();
+  if (await act("/profile", { name: name || null })) toast("Имя сохранено");
+}
+
+async function saveLimit() {
+  const v = Number($("limitIn").value);
+  if (await act("/budget", { limit: v > 0 ? v : null })) toast("Лимит сохранён");
+}
+
 async function add(kind) {
   const pre = kind === "events" ? "ev" : kind;
   const v = s => $(pre + "-" + s)?.value.trim() || "";
@@ -607,11 +688,13 @@ async function add(kind) {
   if (!title) return toast("Введите название");
   if (kind === "events" && !date) return toast("Выберите день");
   if (img && !img.startsWith("data:") && !/^https:\/\//.test(img)) return toast("Ссылка на фото должна начинаться с https://");
-  const amount = kind === "shop" ? Number(v("amount")) || null : null;
-  const size = kind === "plans" ? plansSize : null;
-  const place = kind === "plans" ? v("place") || null : null;
+  const amount = kind === "shop" || kind === "budget" ? Number(v("amount")) || null : null;
+  const size = kind === "plans" ? plansSize : kind === "budget" ? bSize : null;
+  const place = kind === "plans" ? v("place") || null : kind === "budget" ? $("budget-cat").value : null;
+  if (kind === "budget" && !(amount > 0)) return toast("Введите сумму");
   if (await act("/add", { kind, title, date, time, img: img || null, amount, size, place })) {
     for (const s of ["title", "date", "time", "img", "amount", "place"]) if ($(pre + "-" + s)) $(pre + "-" + s).value = "";
+    if (kind === "budget") $("budget-date").value = today();
     delete photos[kind];
     const lbl = $(pre + "-photo-lbl");
     if (lbl) lbl.textContent = "📷 Из галереи";
