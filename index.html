@@ -79,6 +79,17 @@ input:focus{border-color:var(--acc)}
 .star{width:auto;margin:0;padding:0 2px;background:none;box-shadow:none;color:#d6cbe0;font-size:18px;line-height:1}
 .star.on{color:#f5b301}
 .bal{font-size:20px;font-weight:800;margin:4px 0}
+.opts{display:grid;gap:10px;margin:10px 0}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;margin:0;padding:14px;background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:none;border-radius:18px;font-weight:600}
+.opt b{display:block;font-size:15px}
+.opt small{display:block;font-weight:400;color:var(--mut);font-size:13px;margin-top:2px}
+.opt i{font-style:normal;font-size:26px}
+.opt.on{border-color:var(--acc);background:#fff6fa;box-shadow:0 6px 16px -8px var(--acc)}
+.chips{display:flex;gap:8px;margin:6px 0}
+.chip{width:auto;flex:1;margin:0;padding:10px;background:#fff;color:var(--mut);border:1.5px solid var(--line);box-shadow:none;border-radius:14px;font-size:14px}
+.chip.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent}
+.grp{font-size:13px;font-weight:700;color:var(--acc);margin:14px 0 2px;text-transform:uppercase;letter-spacing:.5px}
+.mode{font-size:13px;color:var(--mut);margin:0 0 8px}
 @media (min-width:700px){#hero{border-radius:0 0 32px 32px}}
 </style>
 </head>
@@ -95,7 +106,12 @@ input:focus{border-color:var(--acc)}
   <section id="pairBox">
     <div id="createCard" class="card" hidden>
       <h2>💞 Создать пару</h2>
-      <p class="hint">Создайте пару и отправьте партнёру код.</p>
+      <p class="hint">Несколько вопросов, и пара готова. Потом партнёр введёт код.</p>
+      <div class="lbl">Как вы будете тратить деньги?</div>
+      <div class="opts">
+        <button class="opt on" data-mode="shared" onclick="pickMode('shared')"><i>💰</i><span><b>Общий бюджет</b><small>Одна копилка на двоих. Покупки общие, считаем, сколько потрачено вместе</small></span></button>
+        <button class="opt" data-mode="split" onclick="pickMode('split')"><i>⚖️</i><span><b>Раздельно, поровну</b><small>Каждый платит за свои покупки, в конце считаем разницу пополам</small></span></button>
+      </div>
       <button id="createBtn" onclick="createPair(this)">Создать пару</button>
     </div>
     <div id="waiting" class="card" hidden>
@@ -144,8 +160,12 @@ input:focus{border-color:var(--acc)}
       </div>
       <div class="card">
         <h3>Новый план</h3>
-        <input id="plans-title" placeholder="Например: поездка на море">
-        <input id="plans-date" type="date">
+        <div class="chips">
+          <button class="chip on" data-size="big" onclick="pickSize('big')">🏔️ Крупный</button>
+          <button class="chip" data-size="small" onclick="pickSize('small')">🌱 Мелкий</button>
+        </div>
+        <input id="plans-title" placeholder="Что планируем">
+        <div class="row"><input id="plans-date" type="date"><input id="plans-place" placeholder="Где"></div>
         <input id="plans-img" placeholder="Фото (https://...)">
         <button onclick="add('plans')">Добавить план</button>
       </div>
@@ -155,6 +175,7 @@ input:focus{border-color:var(--acc)}
       <div id="balance" class="card" hidden></div>
       <div class="card">
         <h2>🛒 Покупки</h2>
+        <div id="modeNote" class="mode"></div>
         <div id="progress-shop"></div>
         <div id="list-shop"></div>
       </div>
@@ -341,23 +362,45 @@ function renderDay() {
     </div>`).join("") || `<div class="empty">На этот день ничего нет ✨</div>`;
 }
 
+function row(kind, t) {
+  const btn = kind === "wishes"
+    ? `<button class="heart" onclick="toggle('${kind}',${t.id},${!t.done})" aria-label="Исполнено">${t.done ? "♥" : "♡"}</button>`
+    : `<button class="chk ${t.done ? "on" : ""}" onclick="toggle('${kind}',${t.id},${!t.done})" aria-label="Отметить">${t.done ? "✓" : ""}</button>`;
+  const meta = [t.date && "📅 " + fmtShort(t.date), t.place && "📍 " + t.place].filter(Boolean).map(esc).join(" · ");
+  return `<div class="row-i ${t.done ? "done" : ""}">
+    ${btn}
+    <div class="grow"><div class="ttl">${esc(t.title)}</div>${meta ? `<div class="sub">${meta}</div>` : ""}${t.amount ? `<div class="sub">💰 ${money(t.amount)}${P.mode === "split" && t.settled ? " · рассчитано" : ""}</div>` : ""}</div>
+    ${photo(t)}
+    <button class="del" onclick="del('${kind}',${t.id})" aria-label="Удалить">×</button>
+  </div>`;
+}
+
 function renderList(kind) {
   const items = P.items[kind];
   const done = items.filter(t => t.done).length;
   $("progress-" + kind).innerHTML = items.length
     ? `<div class="prog"><span>${LABEL[kind]} ${done} из ${items.length}</span><div class="bar"><i style="width:${Math.round(done / items.length * 100)}%"></i></div></div>`
     : "";
-  $("list-" + kind).innerHTML = items.map(t => {
-    const btn = kind === "wishes"
-      ? `<button class="heart" onclick="toggle('${kind}',${t.id},${!t.done})" aria-label="Исполнено">${t.done ? "♥" : "♡"}</button>`
-      : `<button class="chk ${t.done ? "on" : ""}" onclick="toggle('${kind}',${t.id},${!t.done})" aria-label="Отметить">${t.done ? "✓" : ""}</button>`;
-    return `<div class="row-i ${t.done ? "done" : ""}">
-      ${btn}
-      <div class="grow"><div class="ttl">${esc(t.title)}</div>${t.date ? `<div class="sub">📅 ${esc(fmtShort(t.date))}</div>` : ""}${t.amount ? `<div class="sub">💰 ${money(t.amount)}${t.settled ? " · рассчитано" : ""}</div>` : ""}</div>
-      ${photo(t)}
-      <button class="del" onclick="del('${kind}',${t.id})" aria-label="Удалить">×</button>
-    </div>`;
-  }).join("") || `<div class="empty">${EMPTY[kind]}</div>`;
+  if (kind === "plans") {
+    const grp = (size, title) => {
+      const list = items.filter(t => t.size === size || (!t.size && size === "big"));
+      return list.length ? `<div class="grp">${title}</div>` + list.map(t => row(kind, t)).join("") : "";
+    };
+    $("list-plans").innerHTML = grp("big", "🏔️ Крупные") + grp("small", "🌱 Мелкие") || `<div class="empty">${EMPTY.plans}</div>`;
+    return;
+  }
+  $("list-" + kind).innerHTML = items.map(t => row(kind, t)).join("") || `<div class="empty">${EMPTY[kind]}</div>`;
+}
+
+let plansSize = "big";
+const pickSize = s => {
+  plansSize = s;
+  for (const c of document.querySelectorAll(".chip")) c.classList.toggle("on", c.dataset.size === s);
+};
+let newMode = "shared";
+function pickMode(m) {
+  newMode = m;
+  for (const o of document.querySelectorAll(".opt")) o.classList.toggle("on", o.dataset.mode === m);
 }
 
 const money = n => n.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " ₽";
@@ -377,7 +420,15 @@ function renderOnDay() {
 
 function renderBalance() {
   const me = JSON.parse(new URLSearchParams(tg?.initData || "").get("user") || "null")?.id;
+  const shared = P.mode === "shared";
+  $("modeNote").textContent = shared ? "Общий бюджет: одна копилка на двоих" : "Раздельно: каждый платит за своё, в конце делим поровну";
   const open = P.items.shop.filter(x => x.amount && !x.settled);
+  if (shared) {
+    const spent = P.items.shop.reduce((s, x) => s + (x.amount || 0), 0);
+    $("balance").hidden = !spent;
+    $("balance").innerHTML = `<h3>💰 Общий бюджет</h3><div class="bal">Потрачено вместе: ${money(spent)}</div><div class="sub">Тратит каждый, считаем вместе</div>`;
+    return;
+  }
   $("balance").hidden = !open.length;
   if (!open.length) return;
   const total = open.reduce((s, x) => s + x.amount, 0);
@@ -396,7 +447,7 @@ function toggleSettings() { $("settings").hidden = !$("settings").hidden; }
 async function createPair(btn) {
   btn.disabled = true;
   btn.textContent = "Создаём…";
-  const ok = await act("/pair/create", {});
+  const ok = await act("/pair/create", { mode: newMode });
   if (!ok) { btn.disabled = false; btn.textContent = "Создать пару"; }
 }
 
@@ -430,8 +481,10 @@ async function add(kind) {
   if (kind === "events" && !date) return toast("Выберите день");
   if (img && !/^https:\/\//.test(img)) return toast("Ссылка на фото должна начинаться с https://");
   const amount = kind === "shop" ? Number(v("amount")) || null : null;
-  if (await act("/add", { kind, title, date, time, img: img || null, amount })) {
-    for (const s of ["title", "date", "time", "img", "amount"]) if ($(pre + "-" + s)) $(pre + "-" + s).value = "";
+  const size = kind === "plans" ? plansSize : null;
+  const place = kind === "plans" ? v("place") || null : null;
+  if (await act("/add", { kind, title, date, time, img: img || null, amount, size, place })) {
+    for (const s of ["title", "date", "time", "img", "amount", "place"]) if ($(pre + "-" + s)) $(pre + "-" + s).value = "";
   }
 }
 
