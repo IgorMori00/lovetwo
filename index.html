@@ -15,7 +15,7 @@ body[data-tab=wishes]{--acc:#f08a1c;--acc2:#ffd27a}
 [hidden]{display:none!important}
 html,body{margin:0;min-height:100%}
 body{font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;color:var(--ink);padding-bottom:calc(100px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased;
-background:radial-gradient(circle at 0% 0%,#ffd9e8 0,transparent 42%),radial-gradient(circle at 100% 30%,#e6dcff 0,transparent 46%),radial-gradient(circle at 50% 100%,#ffe6f0 0,transparent 55%),#fbf5fb;background-attachment:fixed}
+background:var(--page,#fbf5fb)}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><circle cx='15' cy='15' r='2.5' fill='%23ec4b7c' opacity='.12'/><circle cx='60' cy='55' r='3' fill='%239b6cf6' opacity='.12'/><circle cx='40' cy='80' r='2' fill='%23ec4b7c' opacity='.1'/></svg>")}
 button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:16px;padding:13px 16px;width:100%;margin-top:8px;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 8px 20px -8px var(--acc);transition:transform .1s,opacity .1s}
 button:active{transform:scale(.97)}
@@ -27,7 +27,7 @@ input:focus{border-color:var(--acc)}
 .row{display:flex;gap:8px}
 .row>*{flex:1;min-width:0}
 .lbl{display:block;font-size:13px;color:var(--mut);margin:8px 0 2px}
-.card{position:relative;background:rgba(255,255,255,.9);border-radius:24px;padding:16px;margin:12px 0;box-shadow:0 12px 30px -14px #7a4f8f55;backdrop-filter:blur(8px)}
+.card{position:relative;background:rgba(255,255,255,.9);border-radius:24px;padding:16px;margin:12px 0;box-shadow:0 12px 30px -14px #7a4f8f55}
 .card h2,.card h3{margin:0 0 10px;font-size:17px}
 .hint{font-size:14px;color:var(--mut);margin:6px 0 10px;line-height:1.45}
 .wrap{max-width:560px;margin:0 auto;padding:0 14px}
@@ -38,7 +38,7 @@ input:focus{border-color:var(--acc)}
 .sub-hero{font-size:14px;opacity:.95;margin-top:2px}
 .since{margin-top:12px;font-size:20px;font-weight:700}
 .since small{display:block;font-size:12px;font-weight:600;opacity:.9}
-.next{margin-top:10px;background:rgba(255,255,255,.22);border-radius:16px;padding:10px 12px;font-size:14px;backdrop-filter:blur(4px)}
+.next{margin-top:10px;background:rgba(255,255,255,.22);border-radius:16px;padding:10px 12px;font-size:14px}
 .gear{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;width:auto;margin:0;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,.25);box-shadow:none;font-size:18px;z-index:2}
 .code{font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;padding:14px;margin:12px 0;border-radius:18px;background:linear-gradient(135deg,#ffe3ee,#ece3ff);color:var(--acc)}
 .calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
@@ -70,7 +70,7 @@ input:focus{border-color:var(--acc)}
 .bar{flex:1;height:10px;background:var(--line);border-radius:8px;overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:8px;transition:width .3s}
 .pane .card:first-child{border-top:4px solid var(--acc)}
-#nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(480px,calc(100% - 20px));display:flex;gap:4px;padding:6px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-radius:26px;box-shadow:0 14px 34px -12px #5b3a6e44;z-index:10}
+#nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(480px,calc(100% - 20px));display:flex;gap:4px;padding:6px;background:rgba(255,255,255,.97);border-radius:26px;box-shadow:0 14px 34px -12px #5b3a6e44;z-index:10}
 #nav button{flex:1;margin:0;padding:8px 2px;background:none;color:var(--mut);box-shadow:none;border-radius:20px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600}
 #nav button i{font-style:normal;font-size:20px;line-height:1.1}
 #nav button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 6px 16px -6px var(--acc)}
@@ -90,6 +90,17 @@ input:focus{border-color:var(--acc)}
 .chip.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent}
 .grp{font-size:13px;font-weight:700;color:var(--acc);margin:14px 0 2px;text-transform:uppercase;letter-spacing:.5px}
 .mode{font-size:13px;color:var(--mut);margin:0 0 8px}
+.bgs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.bgs button{margin:0;padding:0;height:56px;border-radius:14px;box-shadow:none;border:3px solid transparent;position:relative;font-size:12px;color:#fff;text-shadow:0 1px 3px #0008}
+.bgs button.on{border-color:var(--ink)}
+.bgs button.lock::after{content:"🔒";position:absolute;top:3px;right:5px;font-size:11px;text-shadow:none}
+.bgs button span{position:absolute;left:0;right:0;bottom:4px}
+.bday{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;margin:6px 0}
+.bday input{width:auto;min-width:150px;margin:0;min-height:40px}
+.stack{display:flex;flex-direction:column;gap:2px}
+.section-h{font-size:13px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 4px}
+.prem{font-size:13px;color:var(--mut);margin:0 0 6px;line-height:1.45}
+.danger{color:#c0392b}
 @media (min-width:700px){#hero{border-radius:0 0 32px 32px}}
 </style>
 </head>
@@ -129,10 +140,19 @@ input:focus{border-color:var(--acc)}
   </section>
   <div id="app" hidden>
     <section id="settings" class="card" hidden>
-      <h3>Пара</h3>
+      <h3>⚙️ Настройки</h3>
+      <div class="section-h">Фон</div>
+      <div id="bgs" class="bgs"></div>
+      <div class="section-h">Пара</div>
       <label class="lbl" for="sinceIn">Дата начала отношений (для счётчика)</label>
       <div class="row"><input id="sinceIn" type="date"><button class="sm" onclick="saveSince()">Сохранить</button></div>
-      <button class="ghost" onclick="leave()">Выйти из пары</button>
+      <div class="section-h">Дни рождения</div>
+      <div class="bday"><span>Я</span><input id="bdayMe" type="date" onchange="saveBirthday(this.value)"></div>
+      <div class="bday"><span>Партнёр</span><span id="bdayPartner" class="sub"></span></div>
+      <div class="section-h">Премиум</div>
+      <div id="premBox"></div>
+      <div class="section-h">Пара</div>
+      <button class="ghost danger" onclick="leave()">Отвязать пару</button>
     </section>
 
     <section class="pane" id="tab-events">
@@ -214,6 +234,15 @@ input:focus{border-color:var(--acc)}
 const API = "https://tg-calendar.igor-tgcal-2026.workers.dev";
 const TABS = ["events", "plans", "shop", "wishes"];
 const LABEL = { plans: "Сделано", shop: "Куплено", wishes: "Исполнено" };
+const CACHE = "np-state";
+const BGS = {
+  rose: { name: "Роза", css: "radial-gradient(circle at 0% 0%,#ffd9e8,transparent 45%),radial-gradient(circle at 100% 40%,#e6dcff,transparent 50%),#fbf5fb" },
+  lilac: { name: "Лаванда", css: "linear-gradient(160deg,#eadcff 0%,#fbe3f1 100%)" },
+  mint: { name: "Мята", css: "linear-gradient(160deg,#d4f7ec 0%,#e8f6ff 100%)", premium: true },
+  sunset: { name: "Закат", css: "linear-gradient(160deg,#ffd2b0 0%,#ffb3c6 55%,#c9b6ff 100%)", premium: true },
+  night: { name: "Ночь", css: "linear-gradient(160deg,#2b2350 0%,#16233f 100%)", premium: true },
+  aurora: { name: "Северное сияние", css: "linear-gradient(160deg,#c9f5ef 0%,#d8c9ff 50%,#ffd6ea 100%)", premium: true },
+};
 const EMPTY = { plans: "Планов пока нет — придумайте первый ✨", shop: "Список пуст 🛍️", wishes: "Пока без хотелок 💭" };
 const tg = window.Telegram?.WebApp;
 tg?.ready();
@@ -264,10 +293,15 @@ async function act(path, body) {
 }
 
 async function init() {
+  if (!loaded) {
+    const c = localStorage.getItem(CACHE);
+    if (c) { P = JSON.parse(c); loaded = true; render(); }
+  }
   try {
     P = await api("/");
+    localStorage.setItem(CACHE, JSON.stringify(P));
   } catch (e) {
-    toast("Нет связи с сервером: " + e.message);
+    if (!loaded) toast("Нет связи с сервером: " + e.message);
   }
   loaded = true;
   render();
@@ -291,6 +325,7 @@ function render() {
   $("app").hidden = !paired;
   $("nav").hidden = !paired;
   $("gear").hidden = !P;
+  document.documentElement.style.setProperty("--page", BGS[P?.bg || "rose"].css);
   $("heroSub").textContent = !loaded ? "Загрузка…" : !P ? "Создайте пару или войдите по коду" : solo ? "Ждём партнёра 💌" : "Вы вдвоём 💞";
   $("since").innerHTML = "";
   $("next").hidden = true;
@@ -302,8 +337,52 @@ function render() {
   renderOnDay();
   renderBalance();
   for (const k of TABS.slice(1)) renderList(k);
-  $("sinceIn").value = P.since || "";
+  renderSettings();
   show(tab);
+}
+
+const meId = () => String(JSON.parse(new URLSearchParams(tg?.initData || "").get("user") || "null")?.id || "");
+
+function renderSettings() {
+  $("sinceIn").value = P.since || "";
+  const me = meId();
+  const partner = P.uids.find(u => String(u) !== me);
+  $("bdayMe").value = P.birthdays[me] || "";
+  $("bdayPartner").textContent = partner && P.birthdays[partner] ? fmtShort(P.birthdays[partner]) : "не указан";
+  $("bgs").innerHTML = Object.entries(BGS).map(([k, b]) => {
+    const lock = b.premium && !P.premium;
+    return `<button class="${k === P.bg ? "on" : ""} ${lock ? "lock" : ""}" style="background:${b.css}" onclick="setBg('${k}')"><span>${b.name}</span></button>`;
+  }).join("");
+  $("premBox").innerHTML = P.premium
+    ? `<p class="prem">✨ Премиум открыт для вашей пары. Спасибо!</p>`
+    : `<p class="prem">Премиум: ещё 4 фона и поддержка проекта. Оплата звёздами Telegram, один раз на пару.</p><button onclick="buyPremium(this)">Открыть за ${150} ⭐</button>`;
+}
+
+async function setBg(key) {
+  if (BGS[key].premium && !P.premium) return buyPremium();
+  await act("/bg", { key });
+}
+
+async function saveBirthday(date) {
+  if (await act("/birthday", { date: date || null })) toast("Сохранено 🎂");
+}
+
+async function buyPremium(btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const { url } = await api("/pay/invoice", {});
+    if (!tg?.openInvoice) return toast("Оплата открывается в Telegram");
+    tg.openInvoice(url, async status => {
+      if (status === "paid") {
+        toast("Оплата прошла, открываем ✨");
+        setTimeout(init, 1500);
+      } else if (status !== "cancelled") toast("Оплата не прошла");
+    });
+  } catch (e) {
+    toast(e.message);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 function renderSince() {
@@ -462,7 +541,7 @@ function copyCode() {
 }
 
 async function leave() {
-  if (await confirmBox("Выйти из пары? Общие данные останутся у партнёра.")) await act("/pair/leave", {});
+  if (await confirmBox("Отвязать пару? Вы выйдете, а общие данные останутся у партнёра.")) await act("/pair/leave", {});
 }
 
 async function saveSince() {
