@@ -107,6 +107,15 @@ input:focus{border-color:var(--acc)}
 .hcard b{font-size:16px}
 .hcard small{color:var(--mut);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hcard em{font-style:normal;color:var(--mut);font-size:22px;flex:none}
+#sheet{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheetbg{position:absolute;inset:0;background:#2d244066}
+.sheetcard{position:relative;width:min(560px,100%);max-height:72vh;overflow:auto;background:#fff;border-radius:26px 26px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px -12px #0006}
+.sheethead{display:flex;align-items:center;justify-content:space-between;font-size:17px;font-weight:800;margin-bottom:6px}
+.sheethead button{width:auto;margin:0;padding:4px 10px;background:none;box-shadow:none;color:var(--mut);font-size:24px;line-height:1}
+.pv{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.pv span{display:flex;flex-direction:column;min-width:0}
+.pv small{color:var(--mut);font-size:12px;margin-top:2px}
+.pv b.done{text-decoration:line-through;opacity:.5}
 </style>
 </head>
 <body data-tab="events">
@@ -239,6 +248,14 @@ input:focus{border-color:var(--acc)}
   <button data-tab="shop" onclick="show('shop')"><i>🛒</i>Покупки</button>
   <button data-tab="wishes" onclick="show('wishes')"><i>💭</i>Хотелки</button>
 </nav>
+<div id="sheet" hidden>
+  <div class="sheetbg" onclick="closeSheet()"></div>
+  <div class="sheetcard">
+    <div class="sheethead"><span id="sheetTitle"></span><button onclick="closeSheet()" aria-label="Закрыть">×</button></div>
+    <div id="sheetBody"></div>
+    <button class="ghost" onclick="openSection()">Открыть раздел</button>
+  </div>
+</div>
 <div id="toast" hidden></div>
 <script>
 const API = "https://tg-calendar.igor-tgcal-2026.workers.dev";
@@ -390,12 +407,33 @@ function renderHome() {
   const ev = P.items.events.filter(x => x.date === t);
   const plans = P.items.plans, shop = P.items.shop.filter(x => !x.done), wish = P.items.wishes;
   const openPlans = plans.filter(x => !x.done).slice(0, 2).map(x => esc(x.title)).join(", ");
-  const card = (tab, icon, title, text) => `<button class="hcard" onclick="show('${tab}')"><i>${icon}</i><span><b>${title}</b><small>${text}</small></span><em>›</em></button>`;
+  const card = (tab, icon, title, text) => `<button class="hcard" onclick="preview('${tab}')"><i>${icon}</i><span><b>${title}</b><small>${text}</small></span><em>›</em></button>`;
   $("homeBox").innerHTML =
     card("events", "📅", "Календарь", ev.length ? "Сегодня: " + ev.map(x => esc(x.title)).join(", ") : "Сегодня ничего не запланировано") +
     card("plans", "🗺️", "Планы", plans.length ? `Сделано ${plans.filter(x => x.done).length} из ${plans.length}${openPlans ? " · " + openPlans : ""}` : "Планов пока нет") +
     card("shop", "🛒", "Покупки", shop.length ? `Осталось купить: ${shop.length}` : "Список пуст") +
     card("wishes", "💭", "Хотелки", wish.length ? `Исполнено ${wish.filter(x => x.done).length} из ${wish.length}` : "Пока без хотелок");
+}
+
+let sheetTab = "events";
+function preview(kind) {
+  sheetTab = kind;
+  const names = { events: "📅 Календарь", plans: "🗺️ Планы", shop: "🛒 Покупки", wishes: "💭 Хотелки" };
+  let items = [...P.items[kind]];
+  if (kind === "events") items = items.filter(x => x.date >= today()).sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
+  const line = x => {
+    const when = [x.date && fmtShort(x.date), x.time && x.time.slice(0, 5), x.place, x.amount && money(x.amount)].filter(Boolean).map(esc).join(" · ");
+    const mark = kind === "events" ? "📌" : x.done ? "✅" : "⬜";
+    return `<div class="pv">${mark}<span><b class="${x.done ? "done" : ""}">${esc(x.title)}</b>${when ? `<small>${when}</small>` : ""}</span></div>`;
+  };
+  $("sheetTitle").textContent = names[kind];
+  $("sheetBody").innerHTML = items.map(line).join("") || `<div class="empty">Пока пусто</div>`;
+  $("sheet").hidden = false;
+}
+const closeSheet = () => ($("sheet").hidden = true);
+function openSection() {
+  closeSheet();
+  show(sheetTab);
 }
 
 function renderNext() {
