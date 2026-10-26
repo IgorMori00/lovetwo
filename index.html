@@ -357,16 +357,26 @@ async function act(path, body) {
   }
 }
 
+async function fetchState() {
+  for (let i = 0; i < 2; i++) {
+    try {
+      return await Promise.race([api("/"), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 10000))]);
+    } catch (e) {
+      if (i === 1) throw e;
+    }
+  }
+}
+
 async function init() {
   if (!loaded) {
     const c = localStorage.getItem(CACHE);
     if (c) { P = JSON.parse(c); loaded = true; render(); }
   }
   try {
-    P = await api("/");
+    P = await fetchState();
     localStorage.setItem(CACHE, JSON.stringify(P));
   } catch (e) {
-    if (!loaded) toast("Нет связи с сервером: " + e.message);
+    if (!loaded) toast("Нет связи с сервером. Откройте приложение ещё раз");
   }
   loaded = true;
   render();
