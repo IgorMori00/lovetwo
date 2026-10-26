@@ -123,6 +123,10 @@ select{font:inherit;width:100%;padding:10px 12px;margin:4px 0;border:1px solid #
 .pv span{display:flex;flex-direction:column;min-width:0}
 .pv small{color:var(--mut);font-size:12px;margin-top:2px}
 .pv b.done{text-decoration:line-through;opacity:.5}
+.arch{margin-top:12px;border-top:1px dashed var(--line);padding-top:6px}
+.arch summary{cursor:pointer;font-weight:700;color:var(--mut);padding:8px 0;list-style:none;font-size:14px}
+.arch summary::-webkit-details-marker{display:none}
+.arch .row-i{opacity:.65}
 </style>
 </head>
 <body data-tab="events">
@@ -568,20 +572,27 @@ function row(kind, t) {
 }
 
 function renderList(kind) {
-  const items = P.items[kind];
-  const done = items.filter(t => t.done).length;
-  $("progress-" + kind).innerHTML = items.length
-    ? `<div class="prog"><span>${LABEL[kind]} ${done} из ${items.length}</span><div class="bar"><i style="width:${Math.round(done / items.length * 100)}%"></i></div></div>`
+  const all = P.items[kind];
+  const items = all.filter(t => !t.done);
+  const archived = all.filter(t => t.done);
+  const done = archived.length;
+  $("progress-" + kind).innerHTML = all.length
+    ? `<div class="prog"><span>${LABEL[kind]} ${done} из ${all.length}</span><div class="bar"><i style="width:${Math.round(done / all.length * 100)}%"></i></div></div>`
     : "";
+  const arch = archived.length
+    ? `<details class="arch"><summary>📦 Архив · ${archived.length}</summary>${archived.map(t => row(kind, t)).join("")}</details>`
+    : "";
+  const empty = archived.length && !items.length ? "Всё выполнено 🎉" : EMPTY[kind];
   if (kind === "plans") {
     const grp = (size, title) => {
       const list = items.filter(t => t.size === size || (!t.size && size === "big"));
       return list.length ? `<div class="grp">${title}</div>` + list.map(t => row(kind, t)).join("") : "";
     };
-    $("list-plans").innerHTML = grp("big", "🏔️ Крупные") + grp("small", "🌱 Мелкие") || `<div class="empty">${EMPTY.plans}</div>`;
+    $("list-plans").innerHTML = (grp("big", "🏔️ Крупные") + grp("small", "🌱 Мелкие")) || `<div class="empty">${empty}</div>`;
+    $("list-plans").innerHTML += arch;
     return;
   }
-  $("list-" + kind).innerHTML = items.map(t => row(kind, t)).join("") || `<div class="empty">${EMPTY[kind]}</div>`;
+  $("list-" + kind).innerHTML = (items.map(t => row(kind, t)).join("") || `<div class="empty">${empty}</div>`) + arch;
 }
 
 let plansSize = "big";
