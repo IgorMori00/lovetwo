@@ -464,7 +464,15 @@ function renderHome() {
     card("plans", "🗺️", "Планы", plans.length ? `Сделано ${plans.filter(x => x.done).length} из ${plans.length}${openPlans ? " · " + openPlans : ""}` : "Планов пока нет") +
     card("shop", "🛒", "Покупки", shop.length ? `Осталось купить: ${shop.length}` : "Список пуст") +
     card("wishes", "💭", "Хотелки", wish.length ? `Исполнено ${wish.filter(x => x.done).length} из ${wish.length}` : "Пока без хотелок") +
-    card("budget", "💰", "Бюджет", budgetMonth().balanceText);
+    card("budget", "💰", "Бюджет", budgetMonth().balanceText) +
+    `<button class="hcard" onclick="surprise()"><i>🎲</i><span><b>Что сегодня?</b><small>Случайная хотелка или мелкий план</small></span><em>›</em></button>`;
+}
+
+function surprise() {
+  const pool = [...P.items.wishes, ...P.items.plans.filter(x => x.size !== "big")].filter(x => !x.done);
+  if (!pool.length) return toast("Пока нечего выбрать: добавьте хотелку или план 🎲");
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  toast(`🎲 Сегодня: ${pick.title}`);
 }
 
 let bSize = "out";
