@@ -101,6 +101,12 @@ input:focus{border-color:var(--acc)}
 .danger{color:#c0392b}
 @media (min-width:700px){#hero{border-radius:0 0 32px 32px}}
 .upl{display:block;text-align:center;padding:12px;margin:8px 0 2px;border-radius:14px;border:1.5px dashed var(--acc);color:var(--acc);font-weight:700;cursor:pointer;background:#fff}
+.opts-in{width:100%;font:inherit;padding:10px 12px;margin:4px 0;border:1px solid #8883;border-radius:12px;background:transparent;color:inherit;resize:vertical}
+.pvote{position:relative;display:flex;justify-content:space-between;width:100%;margin:6px 0 0;padding:9px 12px;border:1px solid #e8dcef;border-radius:12px;background:#fff;color:var(--ink);overflow:hidden;font-weight:500;text-align:left}
+.pvote i{position:absolute;left:0;top:0;bottom:0;background:#f3e6fb;z-index:0}
+.pvote span,.pvote b{position:relative;z-index:1}
+.pvote.mine{border-color:var(--acc);font-weight:700}
+.poll .sub{margin-bottom:2px}
 .hcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;color:var(--ink);border:1px solid #f1e8f3;border-radius:18px;padding:14px;margin:0 0 10px;box-shadow:none;cursor:pointer}
 .hcard i{font-size:26px;font-style:normal;flex:none}
 .bsum{display:flex;gap:8px;margin:4px 0 10px}
@@ -213,8 +219,10 @@ select{font:inherit;width:100%;padding:10px 12px;margin:4px 0;border:1px solid #
         <div class="chips">
           <button class="chip on" data-size="big" onclick="pickSize('big')">🏔️ Крупный</button>
           <button class="chip" data-size="small" onclick="pickSize('small')">🌱 Мелкий</button>
+          <button class="chip" data-size="poll" onclick="pickSize('poll')">🗳️ Голосование</button>
         </div>
         <input id="plans-title" placeholder="Что планируем">
+        <textarea id="plans-opts" class="opts-in" rows="2" placeholder="Варианты для голосования, с новой строки (минимум 2)" hidden></textarea>
         <div class="row"><input id="plans-date" type="date"><input id="plans-place" placeholder="Где"></div>
         <input id="plans-img" placeholder="Фото (https://...)">
         <label class="upl" id="plans-photo-lbl"><input type="file" accept="image/*" hidden onchange="pickPhoto('plans', this.files[0])">📷 Из галереи</label>
@@ -576,7 +584,22 @@ function renderDay() {
     </div>`).join("") || `<div class="empty">На этот день ничего нет ✨</div>`;
 }
 
+function pollRow(t) {
+  const opts = t.place.split("|");
+  const counts = opts.map((_, i) => Object.values(t.votes).filter(v => v === i).length);
+  const total = Object.keys(t.votes).length;
+  const mine = t.votes[meId()];
+  const bars = opts.map((o, i) => `<button class="pvote ${mine === i ? "mine" : ""}" onclick="vote(${t.id},${mine === i ? "null" : i})"><span>${esc(o)}</span><b>${counts[i]}</b><i style="width:${total ? Math.round(counts[i] / total * 100) : 0}%"></i></button>`).join("");
+  return `<div class="row-i poll">
+    <div class="grow"><div class="ttl">🗳️ ${esc(t.title)}</div><div class="sub">Голосов: ${total}${total < 2 ? " · ждём партнёра" : ""}</div>${bars}</div>
+    <button class="del" onclick="del('plans',${t.id})" aria-label="Удалить">×</button>
+  </div>`;
+}
+
+const vote = (id, option) => act("/vote", { id, option });
+
 function row(kind, t) {
+  if (t.size === "poll") return pollRow(t);
   const btn = kind === "wishes"
     ? `<button class="heart" onclick="toggle('${kind}',${t.id},${!t.done})" aria-label="Исполнено">${t.done ? "♥" : "♡"}</button>`
     : `<button class="chk ${t.done ? "on" : ""}" onclick="toggle('${kind}',${t.id},${!t.done})" aria-label="Отметить">${t.done ? "✓" : ""}</button>`;
@@ -606,7 +629,7 @@ function renderList(kind) {
       const list = items.filter(t => t.size === size || (!t.size && size === "big"));
       return list.length ? `<div class="grp">${title}</div>` + list.map(t => row(kind, t)).join("") : "";
     };
-    $("list-plans").innerHTML = (grp("big", "🏔️ Крупные") + grp("small", "🌱 Мелкие")) || `<div class="empty">${empty}</div>`;
+    $("list-plans").innerHTML = (grp("poll", "🗳️ Голосования") + grp("big", "🏔️ Крупные") + grp("small", "🌱 Мелкие")) || `<div class="empty">${empty}</div>`;
     $("list-plans").innerHTML += arch;
     return;
   }
@@ -617,6 +640,8 @@ let plansSize = "big";
 const pickSize = s => {
   plansSize = s;
   for (const c of document.querySelectorAll(".chip")) c.classList.toggle("on", c.dataset.size === s);
+  $("plans-opts").hidden = s !== "poll";
+  $("plans-date").closest(".row").hidden = s === "poll";
 };
 let newMode = "shared";
 function pickMode(m) {
@@ -719,10 +744,13 @@ async function add(kind) {
   if (img && !img.startsWith("data:") && !/^https:\/\//.test(img)) return toast("Ссылка на фото должна начинаться с https://");
   const amount = kind === "shop" || kind === "budget" ? Number(v("amount")) || null : null;
   const size = kind === "plans" ? plansSize : kind === "budget" ? bSize : null;
-  const place = kind === "plans" ? v("place") || null : kind === "budget" ? $("budget-cat").value : null;
+  const opts = size === "poll" ? $("plans-opts").value.split("\n").map(s => s.trim()).filter(Boolean) : null;
+  const place = kind === "plans" ? (opts ? opts.join("|") : v("place") || null) : kind === "budget" ? $("budget-cat").value : null;
   if (kind === "budget" && !(amount > 0)) return toast("Введите сумму");
-  if (await act("/add", { kind, title, date, time, img: img || null, amount, size, place })) {
+  if (opts && opts.length < 2) return toast("Добавьте минимум 2 варианта");
+  if (await act("/add", { kind, title, date, time, img: img || null, amount, size, place, options: opts })) {
     for (const s of ["title", "date", "time", "img", "amount", "place"]) if ($(pre + "-" + s)) $(pre + "-" + s).value = "";
+    if (kind === "plans") $("plans-opts").value = "";
     if (kind === "budget") $("budget-date").value = today();
     delete photos[kind];
     const lbl = $(pre + "-photo-lbl");
